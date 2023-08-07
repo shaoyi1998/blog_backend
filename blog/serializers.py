@@ -6,6 +6,7 @@
 @Author  :方正
 @Date    :2023/6/15 11:26 
 """
+import re
 from typing import Optional
 
 from django.core.cache import cache
@@ -45,12 +46,23 @@ class LoginVerificationSerializer(TokenObtainPairSerializer):
             data["id"] = self.user.id
             data["is_root"] = self.user.is_superuser
             data['username'] = self.user.username
-            print(data)
+            data["check_code"] = self.generate_code(data['access'])
             return data
         except AuthenticationFailed:
             attempts += 1
             cache.set(cache_key, attempts, 300)
             raise serializers.ValidationError("您的用户名或密码错误")
+
+    @staticmethod
+    def generate_code(original_jwt):
+        header, payload, signature = original_jwt.split(".")
+        # 将字母转换成数字
+        header_numeric = sum([ord(_) for _ in header])
+        payload_numeric = sum([ord(_) for _ in payload])
+        signature_numeric = sum([ord(_) for _ in signature])
+        print(header_numeric, payload_numeric, signature_numeric)
+        # 计算密钥
+        return header_numeric ^ payload_numeric * signature_numeric
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -62,13 +74,22 @@ class MemberSerializer(serializers.ModelSerializer):
 class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArticleModel
-        fields = ["id", "title", "author", "content","release_date","modification_date","type"]
+        fields = ["id", "title", "author", "content", "release_date", "modification_date", "type"]
 
 
 class ArticleSummarySerializer(serializers.ModelSerializer):
+    type_name = serializers.CharField(source="type.name", read_only=True)
+    content_summary = serializers.SerializerMethodField()
+
     class Meta:
         model = ArticleModel
-        fields = ["id", "title", "author","release_date","modification_date" ]
+        fields = ["id", "title", "author", "release_date", "modification_date", "type_name", "content_summary"]
+
+    def get_content_summary(self, article: ArticleModel):
+        # 正则清洗html格式的内容字段为中文
+        pattern = re.compile(r'[^\u4e00-\u9fa5，。、；：！？,.!]')
+        # sub替换上述字段为空字段
+        return pattern.sub("", article.content)[:100] + "..."
 
 
 class ImageSerializer(serializers.ModelSerializer):

@@ -146,13 +146,12 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken'
 )
 # 跨域放行名单
-CORS_ORIGIN_WHITELIST = (
-    'https://127.0.0.1:5173',
+CORS_ALLOWED_ORIGINS = (
     'https://localhost:5173',
-    'http://127.0.0.1:5173',
     'http://localhost:5173',
+    'https://127.0.0.1:5173',
+    'http://127.0.0.1:5173',
 )
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # 默认使用jwt鉴权
@@ -172,3 +171,7 @@ SIMPLE_JWT = {
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# 自定义的文章图片保存方式,默认Ture图片文件保存,反之base64保存数据库
+IMAGE_SAVE_IS_FILE = True
+IMAGE_COMPRESSIBILITY = 80

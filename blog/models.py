@@ -2,7 +2,7 @@ import datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils.timezone import now
+from django.utils import timezone
 
 
 class MemberModel(AbstractUser):
@@ -26,8 +26,8 @@ class ArticleModel(models.Model):
     content = models.CharField(max_length=100000000, verbose_name="文章内容")
     author = models.ForeignKey(MemberModel, on_delete=models.SET_NULL, null=True, verbose_name="作者")
     type = models.ForeignKey(CategoryModel, on_delete=models.PROTECT, verbose_name="类型")
-    release_date = models.DateTimeField(verbose_name="发布时间")
-    modification_date = models.DateTimeField(default=now(),verbose_name="修改时间")
+    release_date = models.DateTimeField(default=timezone.now(),verbose_name="发布时间")
+    modification_date = models.DateTimeField(default=timezone.now(),verbose_name="修改时间")
 
     def __str__(self):
         return self.title
@@ -36,7 +36,7 @@ class ArticleModel(models.Model):
 class ImageModel(models.Model):
     id = models.AutoField(primary_key=True)
     article = models.ForeignKey(ArticleModel, on_delete=models.CASCADE, related_name='images', verbose_name="所属文章")
-    path = models.ImageField(upload_to='media/', verbose_name="路径")
+    path = models.ImageField(upload_to='./', verbose_name="路径")
 
     def __str__(self):
         return self.path
